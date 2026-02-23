@@ -1,0 +1,47 @@
+pipeline {
+  agent any
+
+  options {
+    disableConcurrentBuilds()
+  }
+
+  stages {
+    stage('Checkout'){
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Install-Tools') {
+      steps {
+        sh 'node --version'
+        sh 'npm --version'
+        sh 'npm install --save-local'
+      }
+    }
+
+    stage('Lint-Test'){
+      steps {
+        sh 'npm run lint'
+      }
+    }
+
+    stage('Unit-Test'){
+       steps {
+        sh 'npm run test'
+       }
+    }
+
+    stage('Build-Android-Test'){
+       steps {
+        sh 'npm run build:android'
+       }
+    }
+
+    stage('Build-iOS-Test'){
+       steps {
+        sh 'npm run build:ios'
+       }
+    }
+  }
+}

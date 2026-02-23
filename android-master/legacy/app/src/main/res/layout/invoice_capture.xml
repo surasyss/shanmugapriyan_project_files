@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#3399ff"
+    android:gravity="center" >
+
+    <TextView
+        android:id="@+id/et_appname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="75dp"
+        android:layout_marginRight="75dp"
+        android:layout_marginTop="26dp"
+        android:ems="10"
+        android:freezesText="true"
+        android:gravity="center_horizontal"
+        android:text="@string/app_name"
+        android:textColor="#fff"
+        android:textSize="25sp"
+        android:textStyle="bold" >
+    </TextView>
+
+    <include
+        android:id="@+id/include1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/et_appname"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        layout="@layout/inflate_invoicecapture" />
+
+    <LinearLayout
+        android:id="@+id/hidden_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="200dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/box"
+        android:orientation="vertical"
+        android:visibility="gone" >
+
+        <Button
+            android:id="@+id/tv_pick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#fff"
+            android:text="@string/txt_pick"
+            android:textColor="#808080"
+            android:layout_marginBottom="15dp"
+            android:textSize="16sp" />
+        
+        <View
+		    android:layout_width="fill_parent"
+		    android:layout_height="1dp"
+		    android:background="#C0C0C0"/>	
+
+        <ListView
+            android:id="@+id/lv_restaurants"
+            android:layout_width="match_parent"
+            android:layout_height="120sp">
+        </ListView>
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:background="#fff"
+            android:text="@string/txt_cancel"
+            android:textColor="#3399ff"
+            android:textSize="25sp" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/iv_logout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/include1"
+        android:layout_alignStart="@+id/include1"
+        android:layout_alignLeft="@+id/include1"
+        android:layout_marginStart="15dp"
+        android:layout_marginLeft="15dp"
+        android:src="@drawable/ic_action" />
+
+    <ImageView
+        android:id="@+id/iv_invoice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/include1"
+        android:layout_alignRight="@+id/include1"
+        android:layout_alignTop="@+id/et_appname"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
+        android:src="@drawable/clock" />
+
+</RelativeLayout>

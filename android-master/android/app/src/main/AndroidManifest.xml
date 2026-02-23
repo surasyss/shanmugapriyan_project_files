@@ -1,0 +1,103 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="com.qubiqle.plateiq">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+
+    <application
+      android:name=".MainApplication"
+      android:launchMode="singleTask"
+      android:label="@string/app_name"
+      android:icon="@mipmap/ic_launcher"
+      android:roundIcon="@mipmap/ic_launcher_round"
+      android:allowBackup="false"
+      android:theme="@style/AppTheme">
+      <activity
+        android:name=".MainActivity"
+        android:label="@string/app_name"
+        android:exported="true"
+        android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+        android:windowSoftInputMode="adjustResize"
+        android:screenOrientation="portrait"
+      >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+
+          <intent-filter>
+              <data android:scheme="piq" />
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <category android:name="android.intent.category.BROWSABLE" />
+          </intent-filter>
+
+          <!-- Branch App Links (optional) -->
+          <intent-filter android:autoVerify="true">
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <category android:name="android.intent.category.BROWSABLE" />
+              <data android:scheme="https" android:host="m.plateiq.com" />
+          </intent-filter>
+
+      </activity>
+      <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
+
+        <!-- Pushy Declarations -->
+
+        <!-- Pushy Notification Receiver -->
+        <!-- Do not modify - internal BroadcastReceiver that forwards notifications to the internal notification service-->
+        <receiver android:name="me.pushy.sdk.react.receivers.PushReceiver" android:exported="false">
+            <intent-filter>
+                <!-- Do not modify this -->
+                <action android:name="pushy.me" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Pushy Update Receiver -->
+        <!-- Do not modify - internal BroadcastReceiver that restarts the listener service -->
+        <receiver android:name="me.pushy.sdk.receivers.PushyUpdateReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Pushy Boot Receiver -->
+        <!-- Do not modify - internal BroadcastReceiver that restarts the listener service -->
+        <receiver android:name="me.pushy.sdk.receivers.PushyBootReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- Pushy Socket Service -->
+        <!-- Do not modify - internal service -->
+        <service android:name="me.pushy.sdk.services.PushySocketService"/>
+
+        <!-- Pushy Job Service (added in Pushy SDK 1.0.35) -->
+        <!-- Do not modify - internal service -->
+        <service android:name="me.pushy.sdk.services.PushyJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true" />
+
+        <!-- End Pushy Declarations -->
+
+        <!-- Branch init -->
+        <meta-data android:name="io.branch.sdk.BranchKey" android:value="key_live_aeGPu61aSU8tYOjDyyodpaglrCefhKnu" />
+        <meta-data android:name="io.branch.sdk.BranchKey.test" android:value="key_test_dpTLq93gUS4z4JgCBDiechddqDjdiVoU" />
+        <meta-data android:name="io.branch.sdk.TestMode" android:value="false" />
+
+<!--        &lt;!&ndash; Branch install referrer tracking (optional) &ndash;&gt;-->
+<!--        <receiver android:name="io.branch.referral.InstallListener" android:exported="true">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="com.android.vending.INSTALL_REFERRER" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
+    </application>
+
+</manifest>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">QUBIQLE</string>
+    <string name="txt_forgotpassword">FORGOT PASSWORD</string>
+    <string name="lbl_userid">User ID</string>
+    <string name="lbl_password">Password</string>
+    <string name="txt_login">LOG IN</string>
+    <string name="txt_pick">Please pick a Restaurant</string>
+    <string name="txt_cancel">Cancel</string>
+    <string name="txt_back">BACK</string>
+    <string name="txt_Pending">PENDING INVOICES</string>
+    <string name="txt_invoiceno">INVOICE NUMBER : </string>
+    <string name="txt_restaurant">RESTAURANT : </string>
+    <string name="txt_createddate">CREATED DATE :</string>
+    
+
+</resources>

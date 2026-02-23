@@ -1,0 +1,168 @@
+/**
+ * Sample React Native App
+ * https://github.com/facebook/react-native
+ *
+ * @format
+ */
+
+import React, { useState, useEffect } from 'react';
+import {
+  Text,
+  Alert,
+  View,
+  PermissionsAndroid,
+  TouchableOpacity,
+  Platform,
+  SafeAreaView,
+  StyleSheet
+} from 'react-native';
+import DeviceInfo from 'react-native-device-info';
+import DocumentPicker from 'react-native-document-picker';
+import { check, request, requestMultiple, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import RNFS from 'react-native-fs';
+
+function App(){
+
+  const [pdfFiles, setPdfFiles] = useState([]);
+
+  // ----------------------------------------------------------------------------
+
+  // const requestStoragePermission = async () => {
+  //   try {
+  //     const granted = await PermissionsAndroid.request(
+  //       PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+  //       {
+  //         title: 'Cool Photo App Camera Permission',
+  //         message:
+  //           'Cool Photo App needs access to your camera ' +
+  //           'so you can take awesome pictures.',
+  //         buttonNeutral: 'Ask Me Later',
+  //         buttonNegative: 'Cancel',
+  //         buttonPositive: 'OK',
+  //       },
+  //     );
+  //     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+  //       console.log('You can use the camera');
+  //       return true
+  //     } else {
+  //       console.log('Camera permission denied');
+  //       return false
+  //     }
+  //   } catch (err) {
+  //     console.warn(err);
+  //   }
+  // };
+
+  const requestStoragePermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+        PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+        PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        // Add other permissions as needed
+      ]);
+      console.log("--", granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES])
+      console.log("--", granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO])
+      console.log("--", granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO])
+      console.log("--", granted[PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE])
+      if (
+        granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES] === PermissionsAndroid.RESULTS.GRANTED &&
+        granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO] === PermissionsAndroid.RESULTS.GRANTED &&
+        granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO] === PermissionsAndroid.RESULTS.GRANTED
+        // Check other permissions as needed
+      ) {
+        console.log('----------- All permissions granted');
+        return true
+      } else {
+        console.log('============ Some permissions are denied');
+        return false
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+
+  const checkFiles = async (listPath: any)  => {
+    for (const file of listPath) {
+       if(file.isDirectory()){
+          console.log("----->", file.path)
+          const readDir = await RNFS.readDir(file.path);
+          checkFiles(readDir)
+       }else{
+          console.log("===> file ", file)
+       }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+
+  async function getPdfFiles() {
+    const hasPermission = await requestStoragePermission();
+
+    if (!hasPermission) {
+      return [];
+    }
+  
+    const pdfFiles = [];
+    const readDir = await RNFS.readDir(RNFS.ExternalStorageDirectoryPath);
+    checkFiles(readDir)
+  }
+
+// ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    // You can trigger this function on a button press or in your component's lifecycle
+  }, []);
+
+  const proceed = () => {
+    Alert.alert('You can use the Camera');
+  };
+
+  return (
+    <SafeAreaView style={{flex: 1}}>
+      <View style={styles.container}>
+        <View style={styles.container}>
+          <TouchableOpacity
+            style={styles.buttonStyle}
+            onPress={getPdfFiles}>
+            <Text style={styles.textStyle}>
+              Ask Permission for files.
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Text
+          style={{
+            fontSize: 18,
+            textAlign: 'center',
+            color: 'grey'
+          }}>
+          Ask Run Time Android Permission
+          {'\n'}
+          React Navigation
+        </Text>
+      </View>
+    </SafeAreaView>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  textStyle: {
+    fontSize: 18,
+    color: 'white',
+  },
+  buttonStyle: {
+    alignItems: 'center',
+    backgroundColor: '#f4511e',
+    padding: 10,
+  },
+});
+
+export default App;
