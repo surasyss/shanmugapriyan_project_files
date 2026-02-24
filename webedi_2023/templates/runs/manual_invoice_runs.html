@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% block sidebar %}
+{{block.super}}
+<div id="content-main">
+    <div class="results">
+        <table id="result_list" style="width: 100%;">
+            <thead>
+            <tr>
+                <th scope="col" class="column-id2">
+                    <div class="text"><span>Id2</span></div>
+                    <div class="clear"></div>
+                </th>
+                <th scope="col" class="column-action_required">
+                    <div class="text"><span>Account</span></div>
+                    <div class="clear"></div>
+                </th>
+                <th scope="col" class="column-action_required">
+                    <div class="text"><span>Connector</span></div>
+                    <div class="clear"></div>
+                </th>
+                <th scope="col" class="column-created_date">
+                    <div class="text">Created date</div>
+                    <div class="clear"></div>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for run in runs %}
+            <tr class="row1">
+                <th class="field-id2"><a href="{% url 'admin:manual-invoice-download' run_id=run.id %}">{{run.id}}</a></th>
+                <td class="field-action">{{run.job.account.display_name}}</td>
+                <td class="field-created_date nowrap"><a href="{% url 'admin:definitions_connector_change' run.job.connector.id %}">{{run.job.connector}}</a></td>
+                <td class="field-created_date nowrap">{{run.created_date|date:"d/m/Y"}}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<br class="clear">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css"/>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/plug-ins/1.10.12/sorting/datetime-moment.js"></script>
+<script>
+$(document).ready( function () {
+    $.fn.dataTable.moment = function ( format, locale ) {
+        var types = $.fn.dataTable.ext.type;
+
+        // Add type detection
+        types.detect.unshift( function ( d ) {
+            return moment( d, format, locale, true ).isValid() ?
+                'moment-'+format :
+                null;
+        } );
+
+        // Add sorting method - use an integer for the sorting
+        types.order[ 'moment-'+format+'-pre' ] = function ( d ) {
+            return moment( d, format, locale, true ).unix();
+        };
+    };
+    $.fn.dataTable.moment('DD/MM/YYYY');
+    $('#result_list').DataTable();
+} );
+</script>
+{% endblock %}

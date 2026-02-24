@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+{{ block.super }}
+{{ media }}
+<script src="{% static 'admin/js/cancel.js' %}" async></script>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} cancel-confirmation{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+    &rsaquo; <a href="{% url 'admin:runs_run_changelist' %}">Runs</a>
+    &rsaquo; Cancel
+</div>
+{% endblock %}
+
+{% block content %}
+<p>Are you sure you want to cancel? All of the following items will be canceled:</p>
+<h2>Objects</h2>
+<ul>{{ to_be_canceled_objects|unordered_list }}</ul>
+<form action="{% url 'admin:cancel-run-action' object_id %}" method="post">{% csrf_token %}
+    <div class="form-row field-cancel_reason">
+        <div>
+            <label class="required" for="id_cancel_reason" style="padding: 1em;">Cancel reason:</label>
+            <select name="cancel_reason" id="id_cancel_reason" style="width: 15%;margin: 1em;" required>
+                <option value="" selected="">---------</option>
+                {% for ident, msg in cancel_reasons.items %}
+                <option value="{{ident}}">{{msg}}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="form-row field-cancel_reason_text">
+        <div>
+            <label class="required" for="id_cancel_reason_text" style="padding: 1em;">Disabled reason text:</label>
+            <textarea name="cancel_reason_text" cols="40" rows="10" class="vLargeTextField"
+                      style="margin: 1em;margin-top: 0;" required
+                      id="id_cancel_reason_text"></textarea>
+        </div>
+    </div>
+    <div>
+        {% for obj in to_be_canceled_objects %}
+        <input type="hidden" name="run_object_ids" value="{{ obj.pk }}"/>
+        {% endfor %}
+        <input type="hidden" name="post" value="yes">
+        <input type="submit" value="Yes, I’m sure">
+        <a href="{{request.META.HTTP_REFERER}}" class="button cancel-link" style="padding: 10px 15px;">No, take me
+            back</a>
+    </div>
+</form>
+{% endblock %}

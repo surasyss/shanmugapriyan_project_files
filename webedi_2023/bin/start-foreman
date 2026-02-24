@@ -1,0 +1,5 @@
+#!/bin/bash
+. bin/activate
+
+/app/bin/start-pgbouncer /usr/local/bin/foreman start -f /app/bin/Procfile -d /app -c integrator-web=${WEB_SERVICE:-0},\
+integrator-worker=${INTEGRATOR_WORKER_SERVICE:-0}

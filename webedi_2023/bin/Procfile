@@ -1,0 +1,3 @@
+integrator-web: NEW_RELIC_CONFIG_FILE=newrelic.ini newrelic-admin run-program gunicorn -c gunicorn_hooks.py integrator.wsgi --workers ${WEB_CONCURRENCY:-1}
+
+integrator-worker: NEW_RELIC_CONFIG_FILE=newrelic-celery.ini newrelic-admin run-program celery -A integrator worker --without-gossip --without-mingle --without-heartbeat -l info -Q integrator-tasks,integrator-short-tasks,integrator-tasks-on-demand -c ${WORKER_CONCURRENCY:-1}

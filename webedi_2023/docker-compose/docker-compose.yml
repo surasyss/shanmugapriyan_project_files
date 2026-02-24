@@ -1,0 +1,59 @@
+version: '3.3'
+services:
+  postgres:
+    image: 767512458197.dkr.ecr.us-east-1.amazonaws.com/plateiq/webedi_db:${DB_IMAGE_TAG}
+    container_name: ${COMPOSE_PROJECT_NAME}_db
+    hostname : webedi_db
+    restart: always
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: auto_webedi
+    ports:
+      - "5431:5432"
+    healthcheck:
+      test: netstat -atulnp | grep :5432 || exit 1
+      interval: 5s
+      timeout: 2m
+      retries: 24
+    tty: true
+
+  redis:
+    image: 767512458197.dkr.ecr.us-east-1.amazonaws.com/common/redis:6
+    container_name: ${COMPOSE_PROJECT_NAME}_redis
+    hostname: webedi_redis
+    restart: always
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: netstat -atulnp | grep :6379 || exit 1
+      interval: 5s
+      timeout: 2m
+      retries: 24
+    tty: true
+
+  django:
+    image: ${APP_IMAGE_URI}
+    container_name: ${COMPOSE_PROJECT_NAME}_django
+    hostname : webedi_django
+    build: .
+    environment:
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/auto_webedi
+      - LOCAL_ENV=1
+      - REDIS_PLATEIQ_CELERY_URL=redis://redis:6379/
+      - PIQ_OAUTH_CLIENT_ID=${PIQ_OAUTH_CLIENT_ID}
+      - PIQ_OAUTH_CLIENT_SECRET=${PIQ_OAUTH_CLIENT_SECRET}
+      - PIQ_API_BASE_URL=https://sandbox.qubiqle.com
+      - PIQ_API_TOKEN=${PIQ_AUTH_CELERY_TOKEN}
+      - GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    command: dockerize -wait tcp://postgres:5432 -wait tcp://redis:6379 -timeout 120s -wait-retry-interval 5s
+      /bin/bash -c "/app/bin/python3 manage.py migrate && /app/bin/python3 manage.py runserver 0.0.0.0:5000"
+    ports:
+      - "8002:5000"
+    healthcheck:
+      test: netstat -atulnp | grep :5000 || exit 1
+      interval: 5s
+      timeout: 2m
+      retries: 24
+    tty: true

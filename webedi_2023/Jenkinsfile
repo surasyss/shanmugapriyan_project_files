@@ -1,0 +1,189 @@
+#!groovy
+
+def jenkins_utils
+def buildVariables = [:]
+def jenkinsUtilsURL = 'https://raw.githubusercontent.com/plateiq/spices/v208-9b588d71/jenkins/jenkins_utils.groovy'
+
+buildVariables.git = [
+    orgName: 'plateiq',
+    repoName: 'webedi',
+    credentialsId: 'JenkinsGithubUser-PersonalAccessToken', // Don't need this line starting from v210
+]
+
+buildVariables.docker = [
+    imageName: 'plateiq/webedi',
+    runArgs: '-e LOCAL_ENV=True ',
+]
+
+buildVariables.testing = [
+    coverageReport: 'coverage.xml',
+    testResultsReport: 'junit.xml',
+]
+
+buildVariables.pytest = [
+    command: "/app/bin/python3 -m pytest --cov-report xml:${buildVariables.testing.coverageReport} --cov-branch --cov --durations=5 --junitxml=${buildVariables.testing.testResultsReport}",
+    execution: [
+        environment: 'docker',
+        postgres: 'docker',
+        postgres_image: '767512458197.dkr.ecr.us-east-1.amazonaws.com/common/postgres:12',
+        postgresEnvVars: ['DATABASE_URL', ],
+        redis: 'docker',
+        redisImage: '767512458197.dkr.ecr.us-east-1.amazonaws.com/common/redis:5',
+        redisEnvVars: ['REDIS_PLATEIQ_CELERY_URL', 'REDIS_PLATEIQ_CACHE_URL', ],
+    ]
+]
+
+buildVariables.pylint = [
+    command: "/app/bin/python3 -m black --check --verbose --diff --color .",
+    logFileName: "black-lintcheck.log",
+    execution: [
+        environment: 'docker',
+    ]
+]
+
+buildVariables.beanstalk = [
+    applicationName: buildVariables.git.repoName,
+    environmentName: "${buildVariables.git.repoName}-stage",
+    awsProfile: "stage",
+    wafArn: "${env.STAGING_WAF_ARN}",
+    prometheus_ip: "${env.PROMETHEUS_STAGE_IP}"
+]
+
+buildVariables.prdeploy = [
+    piqAuthAppName: 'Webedi',
+]
+
+buildVariables.slack = [
+    channel: '#webedi-engineering',
+]
+
+pipeline {
+    agent any
+
+    options {
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Setup and Build') {
+            environment {
+                jenkinsUtilsURL = "$jenkinsUtilsURL"
+            }
+            steps {
+                withCredentials([usernameColonPassword(credentialsId: buildVariables.git.credentialsId, variable: 'USERPASS')]) {
+                    sh '''
+                    curl -o jenkins_utils.groovy -u "$USERPASS" $jenkinsUtilsURL
+                    '''
+                }
+                sh 'cat jenkins_utils.groovy'
+
+                script {
+                    jenkins_utils = load 'jenkins_utils.groovy'
+                    jenkins_utils.buildVariables = buildVariables
+                    jenkins_utils.initialize()
+                }
+
+                withCredentials([usernameColonPassword(credentialsId: buildVariables.git.credentialsId, variable: 'USERPASS')]) {
+                    sh "docker build -t ${jenkins_utils.buildVariables.docker.localImage} -f Dockerfile --build-arg GITHUB_ACCESS_TOKEN=${USERPASS} --build-arg BUILD_VERSION=${jenkins_utils.buildVariables.release.versionTag} ."
+                }
+                //sh "docker build -t ${jenkins_utils.buildVariables.docker.localImage} -f Dockerfile --build-arg GITHUB_ACCESS_TOKEN=${env.GITHUB_ACCESS_TOKEN} --build-arg BUILD_VERSION=${jenkins_utils.buildVariables.release.versionTag} ."
+            }
+        }
+
+        stage ('Unit Tests') {
+            steps {
+                script {
+                    jenkins_utils.runPytest()
+                }
+
+                // publish test results in the UI
+                junit allowEmptyResults: true, testResults: buildVariables.testing.testResultsReport
+
+                // publish code coverage report
+                step([$class: 'CoberturaPublisher',
+                       autoUpdateHealth: false,
+                       autoUpdateStability: false,
+                       coberturaReportFile: buildVariables.testing.coverageReport,
+                       failNoReports: false,
+                       failUnhealthy: false,
+                       failUnstable: false,
+                       maxNumberOfBuilds: 10,
+                       onlyStable: false,
+                       sourceEncoding: 'ASCII',
+                       zoomCoverageChart: false])
+            }
+        }
+
+
+//         stage('PR Server') {
+//             steps {
+//                 script {
+//                     if (buildVariables.release.isProductionBuild) {
+//                         jenkins_utils.destroyPREnvironment()
+//                     } else {
+//                         jenkins_utils.deployPREnvironment()
+//                     }
+//                 }
+//             }
+//         }
+
+        stage('Push') {
+            when {
+                expression { buildVariables.release.isProductionBuild }
+            }
+            steps {
+                script {
+                    jenkins_utils.gitPushVersionTag()
+                    jenkins_utils.dockerPushToECR()
+                }
+            }
+        }
+
+        stage('e2e') {
+            environment {
+                DB_IMAGE_TAG = "latest"
+                E2E_IMAGE_TAG = "latest"
+                APP_IMAGE_TAG = "${jenkins_utils.buildVariables.release.versionTag}"
+                APP_IMAGE_URI = "${buildVariables.release.isProductionBuild ? jenkins_utils.buildVariables.docker.remoteImage : jenkins_utils.buildVariables.docker.localImage}"
+                TOKEN_AUTOMATION = credentials("TOKEN_AUTOMATION")
+                TOKEN_CELERY = credentials("PIQ_AUTH_CELERY_TOKEN")
+                TOKEN_QASE_KY = credentials("TOKEN_QASE_KY")
+                QASE_TITLE = "E2E API - Branch: ${GIT_BRANCH}, Build: ${BUILD_DISPLAY_NAME}"
+                AWS_ACCESS_KEY_ID = "${AWS_ACCESS_KEY_ID}"
+                AWS_SECRET_ACCESS_KEY = "${AWS_SECRET_ACCESS_KEY}"
+                COMPOSE_PROJECT_NAME = "webedi"
+                COMPOSE_FILE = "./docker-compose/docker-compose.yml:./docker-compose/docker-compose-e2e.yml"
+            }
+//             when {
+//                 expression { buildVariables.release.isProductionBuild }
+//             }
+            steps {
+                script {
+                    sh "printenv"
+                    sh "docker-compose pull && docker-compose up --abort-on-container-exit"
+                    sh "docker-compose down --remove-orphans --rmi all"
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                expression { buildVariables.release.isProductionBuild }
+            }
+            steps {
+                script {
+                    jenkins_utils.deployDockerImageToBeanstalkAndNotify()
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                jenkins_utils.printHostState()
+            }
+            deleteDir()
+        }
+    }
+}

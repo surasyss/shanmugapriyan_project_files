@@ -1,0 +1,32 @@
+# all pyc files
+**/*.pyc
+**/__pycache__/
+
+# git files
+.git/
+.gitignore
+.github/
+
+# CI
+Jenkinsfile
+jenkins_utils.groovy
+
+# docs
+README.md
+docs/
+
+# tmp
+tmp/
+
+# OS / IDE
+.DS_Store
+.idea/
+
+# dotenv
+.env
+sample.env
+
+# Generated files
+downloads/
+static/
+.pytest_cache/

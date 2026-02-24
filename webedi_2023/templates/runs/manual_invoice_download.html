@@ -1,0 +1,294 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+<style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
+
+</style>
+{% block sidebar %}
+{{block.super}}
+<div id="content-main">
+    <div>
+        <fieldset class="module aligned ">
+            <h2>Auth Details</h2>
+            <table width="100%">
+                <form action="" method="post" id="manual_de_form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <tr>
+                        <th>Login URL:</th>
+                        <td>
+                            <a target="_blank" href="{% firstof run.job.connector.login_url run.job.login_url %}">
+                                {% firstof run.job.connector.login_url run.job.login_url %}
+                            </a>
+                        </td>
+                        <td><input type="submit" id="manual_de_form_btn" value="Mark as Complete" class="default"
+                                   name="_save"></td>
+                    </tr>
+                    {% if run.execution_start_ts %}
+                    <tr>
+                        <th>Username/Email:</th>
+                        <td id="username">{{run.job.username}}</td>
+                        <td><input type="button" id="btnUserName" value="Copy me" class="default"></td>
+                    </tr>
+                    <tr>
+                        <th>Password:</th>
+                        <td id="password">{{run.job.password}}</td>
+                        <td><input type="button" id="btnPassword" value="Copy me" class="default"></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td></td>
+                        <td><input type="button" id="btnStartIDownloading" value="Start invoice downloading"
+                                   class="default"></td>
+                        <td></td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th>Get invoices in range:</th>
+                        <td>{{start_date}} - {{end_date}}</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th>Expected Download file format:</th>
+                        <td>{{connector.get_supported_invoice_format}}</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th>Required VPN</th>
+                        <td>{{vpn_required}}</td>
+                        <td></td>
+                    </tr>
+                    {% if connector.invoice_download_url %}
+                    <tr>
+                        <th>Invoice URL</th>
+                        <td>
+                            <a target="_blank" href="{{connector.invoice_download_url}}">
+                                {{connector.invoice_download_url}}
+                            </a>
+                        </td>
+                        <td></td>
+                    </tr>
+                    {% endif %}
+                    {% if connector.video_url %}
+                    <tr>
+                        <th>How to download invoices?</th>
+                        <td>
+                            <a target="_blank" href="{{connector.video_url}}">
+                                {{connector.video_url}}
+                            </a>
+                        </td>
+                        <td></td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th>Facing some issue while logging?:</th>
+                        <td><span class="clearable-file-input">
+<input type="checkbox" name="auth_failure_issue" id="auth_issue_checkbox">
+<label for="auth_issue_checkbox">yes</label></span>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th>Facing some issue while accessing site?:</th>
+                        <td><span class="clearable-file-input">
+<input type="checkbox" name="accessing_site_issue_checkbox" id="accessing_site_issue_checkbox">
+<label for="accessing_site_issue_checkbox">yes</label></span>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th>No invoices found in the given range or all are uploaded already?:</th>
+                        <td><span class="clearable-file-input">
+<input type="checkbox" name="no_invoices_found" id="no_invoices_found">
+<label for="no_invoices_found">yes</label></span>
+                        </td>
+                        <td></td>
+                    </tr>
+                </form>
+            </table>
+        </fieldset>
+        {% if discovered_files %}
+        <fieldset class="module aligned ">
+        <h2>Older Invoices for the Job</h2>
+        <div class="file-loading_older_invoices" style="margin-top: 2em;margin-bottom: 2em;">
+            <table id="result_list" style="width: 100%;">
+                <thead>
+                <tr>
+                    <th scope="col" class="column-id2">
+                        <div class="text"><span>Id</span></div>
+                        <div class="clear"></div>
+                    </th>
+                    <th scope="col" class="column-action_required">
+                        <div class="text"><span>File Name</span></div>
+                        <div class="clear"></div>
+                    </th>
+                    <th scope="col" class="column-action_required">
+                        <div class="text"><span>Invoice URL</span></div>
+                        <div class="clear"></div>
+                    </th>
+                    <th scope="col" class="column-created_date">
+                        <div class="text"><a href="?o=2">Created date</a></div>
+                        <div class="clear"></div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for df in discovered_files %}
+                <tr class="row1">
+                    <th class="field-id2">{{df.id}}</th>
+                    <th class="field-id2">{{df.original_filename}}</th>
+                    <td class="field-action"><a href="{{df.file_url}}">View</a></td>
+                    <td class="field-created_date nowrap">{{df.created_date}}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-center">
+                <a class="p-2 bd-highlight" style="border: 1px solid;border-radius: 5px;padding-left: 2em !important;padding-right: 2em !important;background: #79aec8;color: white;" href="{% url 'admin:runs_discoveredfile_changelist' %}?filter_job_id={{run.job.id}}">View all</a>
+            </div>
+        </div>
+        {% endif %}
+        </fieldset>
+        <fieldset class="module aligned ">
+            <h2>Upload New Invoices</h2>
+            <div class="file-loading">
+                <input id="input-id" type="file" name="original_file" multiple>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/base.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/widgets.css' %}"/>
+<!-- bootstrap 5.x or 4.x is supported. You can also use the bootstrap css 3.3.x versions -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css"
+      crossorigin="anonymous">
+
+<!-- default icons used in the plugin are from Bootstrap 5.x icon library (which can be enabled by loading CSS below) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.min.css"
+      crossorigin="anonymous">
+
+<!-- alternatively you can use the font awesome icon library if using with `fas` theme (or Bootstrap 4.x) by uncommenting below. -->
+<!-- link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.3/css/all.css" crossorigin="anonymous" -->
+
+<!-- the fileinput plugin styling CSS file -->
+<link href="https://cdn.jsdelivr.net/gh/kartik-v/bootstrap-fileinput@5.2.2/css/fileinput.min.css" media="all"
+      rel="stylesheet" type="text/css"/>
+
+<!-- if using RTL (Right-To-Left) orientation, load the RTL CSS file after fileinput.css by uncommenting below -->
+<!-- link href="https://cdn.jsdelivr.net/gh/kartik-v/bootstrap-fileinput@5.2.2/css/fileinput-rtl.min.css" media="all" rel="stylesheet" type="text/css" /-->
+
+<!-- the jQuery Library -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+
+<!-- piexif.min.js is needed for auto orienting image files OR when restoring exif data in resized images and when you
+    wish to resize images before upload. This must be loaded before fileinput.min.js -->
+<script src="https://cdn.jsdelivr.net/gh/kartik-v/bootstrap-fileinput@5.2.2/js/plugins/piexif.min.js"
+        type="text/javascript"></script>
+
+<!-- sortable.min.js is only needed if you wish to sort / rearrange files in initial preview.
+    This must be loaded before fileinput.min.js -->
+<script src="https://cdn.jsdelivr.net/gh/kartik-v/bootstrap-fileinput@5.2.2/js/plugins/sortable.min.js"
+        type="text/javascript"></script>
+
+<!-- bootstrap.bundle.min.js below is needed if you wish to zoom and preview file content in a detail modal
+    dialog. bootstrap 5.x or 4.x is supported. You can also use the bootstrap js 3.3.x versions. -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+
+<!-- the main fileinput plugin script JS file -->
+<script src="https://cdn.jsdelivr.net/gh/kartik-v/bootstrap-fileinput@5.2.2/js/fileinput.min.js"></script>
+<script>
+$(document).ready(function() {
+    var getCount = function(id) {
+        var cnt = $('#' + id).fileinput('getFilesCount');
+        return cnt === 0 ? 'You have no files remaining.' :
+            'You have ' +  cnt + ' file' + (cnt > 1 ? 's' : '') + ' remaining.';
+    };
+
+    $("#input-id").fileinput({
+        uploadUrl: "{% url 'admin:invoice-download' run_id=run.id %}",
+        validateInitialCount: true,
+        showRemove: true,
+        initialPreviewShowDelete: true,
+        showUploadStats: true,
+        showClose: false,
+        uploadExtraData: {
+           csrfmiddlewaretoken:'{{ csrf_token }}'
+        }
+    }).on('fileuploaded', function(event, data, previewId, index, fileId) {
+        var form = data.form, files = data.files, extra = data.extra,
+            response = data.response, reader = data.reader;
+        disc_file_id = response.disc_file_id;
+        cid = fileId.replace(".","\\.");
+        document.querySelector("#thumb-input-id-"+cid+" > div.file-thumbnail-footer > div.file-footer-caption > div.file-caption-info").textContent = disc_file_id;
+    });
+
+    function copyToClipBoard(copyText) {
+        var textArea = document.createElement("textarea");
+        textArea.value = copyText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("Copy");
+        textArea.remove();
+    }
+
+    $("#btnUserName").click(function(e){
+        copyToClipBoard($("#username").html());
+        setTimeout(function() {
+            $("#btnUserName").val("Copy Me");
+        }, 2000);
+        $("#btnUserName").val("Copied");
+    });
+
+    $("#btnPassword").click(function(e){
+        copyToClipBoard($("#password").html());
+        setTimeout(function() {
+            $("#btnPassword").val("Copy Me");
+        }, 2000);
+        $("#btnPassword").val("Copied");
+    });
+
+    $("#btnStartIDownloading").click(function(e){
+        var ajaxData = new FormData();
+        ajaxData.append("csrfmiddlewaretoken",'{{ csrf_token }}');
+        ajaxData.append("start_run",true);
+        jQuery.ajax({
+            url: "{% url 'admin:mark-run-started' run_id=run.id %}",
+            type: 'POST',
+            data: ajaxData,
+            cache: false,
+            dataType: 'json', // This replaces dataFilter: function() && JSON.parse( data ).
+            processData: false, // Don't process the files
+            contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+            success: function( data ) {
+                location.reload();
+            },
+            error: function( jqXHR, textStatus, exception ) {
+               alert("Something went wrong while starting run, please raise this over ##integrator-engineering at slack.");
+            },
+
+        });
+    });
+
+
+});
+</script>
+
+<br class="clear">
+{% endblock %}

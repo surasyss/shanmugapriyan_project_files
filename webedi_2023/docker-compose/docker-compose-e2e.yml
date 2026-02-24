@@ -1,0 +1,37 @@
+version: '3.3'
+services:
+  postgres:
+    network_mode: bridge
+
+  redis:
+    network_mode: bridge
+
+  django:
+    network_mode: bridge
+    links:
+      - "postgres"
+      - "redis"
+    depends_on:
+      - "postgres"
+      - "redis"
+
+  e2e:
+    image: 767512458197.dkr.ecr.us-east-1.amazonaws.com/plateiq/fastfood:${E2E_IMAGE_TAG}
+    container_name: ${COMPOSE_PROJECT_NAME}_e2e
+    environment:
+      WEBEDI_BASE_URL: http://django:5000/
+      TOKEN_CELERY: ${TOKEN_CELERY}
+      TOKEN_AUTOMATION: ${TOKEN_AUTOMATION}
+      TOKEN_QASE_KY: ${TOKEN_QASE_KY}
+      QASE_TITLE: ${QASE_TITLE}
+    network_mode: bridge
+    links:
+      - "django"
+    command: dockerize -wait http://django:5000 -timeout 120s -wait-retry-interval 5s
+      bash -c "pytest -n auto --qase-mode=testops --qase-to-api-token=${TOKEN_QASE_KY} --qase-to-project=WEBEDI --qase-to-plan=2 --qase-to-run-title=\"${QASE_TITLE}\" tests/api/webedi/"
+    depends_on:
+      - "postgres"
+      - "redis"
+      - "django"
+    volumes:
+      - "../test-reports/:/app/test-reports/"

@@ -1,0 +1,20 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "767512458197.dkr.ecr.us-east-1.amazonaws.com/plateiq/webedi:<VERSION_TAG>"
+  },
+  "Ports": [
+    {
+      "HostPort": "80",
+      "ContainerPort": "5000"
+    }
+  ],
+  "Command": "/app/bin/boot_docker_app.sh",
+  "LogConfiguration": {
+    "logDriver": "json-file",
+    "options": {
+      "max-size": "100m",
+      "max-file": "3"
+    }
+  }
+}
