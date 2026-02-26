@@ -1,0 +1,60 @@
+{
+  "name": "chrome-ext",
+  "version": "1.0.0",
+  "description": "A Vue.js web extension",
+  "author": "",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "prettier": "prettier \"src/**/*.{js,vue}\"",
+    "prettier:write": "npm run prettier -- --write",
+    "build": "cross-env NODE_ENV=production webpack --hide-modules",
+    "build:dev": "cross-env NODE_ENV=development webpack --hide-modules",
+    "build-zip": "node scripts/build-zip.js",
+    "watch": "npm run build -- --watch",
+    "watch:dev": "cross-env HMR=true npm run build:dev -- --watch"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "bootstrap": "^4.5.2",
+    "bootstrap-vue": "^2.16.0",
+    "compromise": "^13.3.2",
+    "elasticlunr": "^0.9.5",
+    "idb": "^5.0.7",
+    "jquery": "^3.5.1",
+    "moment": "^2.29.1",
+    "net-browserify": "^0.2.4",
+    "queue": "^6.0.1",
+    "sha1": "^1.1.1",
+    "string-strip-html": "^5.0.0",
+    "uuid": "^8.3.0",
+    "vue": "^2.6.11",
+    "vuex": "^3.5.1",
+    "vuex-persist": "^3.1.0",
+    "webextension-polyfill": "^0.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-proposal-optional-chaining": "^7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/runtime-corejs3": "^7.4.0",
+    "archiver": "^3.0.0",
+    "babel-loader": "^8.0.2",
+    "copy-webpack-plugin": "^5.1.1",
+    "core-js": "^3.0.1",
+    "cross-env": "^5.2.0",
+    "css-loader": "^3.4.0",
+    "ejs": "^2.6.1",
+    "file-loader": "^5.0.2",
+    "mini-css-extract-plugin": "^0.9.0",
+    "node-sass": "^4.9.3",
+    "sass-loader": "^7.1.0",
+    "vue-loader": "^15.4.2",
+    "vue-template-compiler": "^2.6.10",
+    "web-ext-types": "^2.1.0",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-extension-reloader": "^1.1.0"
+  }
+}

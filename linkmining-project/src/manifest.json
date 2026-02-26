@@ -1,0 +1,38 @@
+{
+  "name": "Link mining",
+  "description": "A web extension to do nlp on the links you visited",
+  "version": "1.0",
+  "manifest_version": 2,
+  "icons": {
+    "48": "icons/icon_99.png"
+  },
+  "browser_action": {
+    "default_title": "Link mining",
+    "default_popup": "popup/popup.html"
+  },
+  "background": {
+    "scripts": [
+      "background.js",
+      "popup/popup.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.google.com/*"
+      ],
+      "js": ["contentScript.js"]
+    }
+  ],
+  "options_ui": {
+    "page": "options/options.html",
+    "chrome_style": true
+  },
+  "permissions": [
+    "bookmarks",
+    "activeTab",
+    "storage",
+    "https://*/",
+    "http://*/"
+  ]
+}
